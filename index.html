@@ -3,110 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Historical Stock Data</title>
+    <title>Stock Price Viewer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
             text-align: center;
+            background-color: #f7f9fc;
+            color: #333;
         }
-        form {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: calc(100% - 22px);
+        input, button {
             padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[type="submit"] {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+            font-size: 16px;
             margin-top: 20px;
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        .error {
-            color: red;
-            text-align: center;
-        }
-        .success {
-            color: green;
-            text-align: center;
+        #price {
+            font-size: 24px;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Get Historical Stock Data</h1>
-        <form action="/get_historical_data" method="post">
-            <input type="text" name="symbol" placeholder="Enter Company Symbol" required>
-            <input type="submit" value="Get Data">
-        </form>
-        
-        {% if error %}
-        <p class="error">{{ error }}</p>
-        {% endif %}
+    <h1>Real-Time Stock Price Viewer</h1>
+    <input type="text" id="companySymbol" placeholder="Enter Company Symbol">
+    <button onclick="getStockPrice()">Get Price</button>
+    <div id="price"></div>
 
-        {% if success %}
-        <p class="success">{{ success }}</p>
-        {% endif %}
+    <script>
+        function getStockPrice() {
+            const symbol = document.getElementById('companySymbol').value;
+            if (symbol === '') {
+                alert('Please enter a company symbol.');
+                return;
+            }
+            
+            fetch(`/get_stock_price?symbol=${symbol}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('price').innerText = data.error;
+                    } else {
+                        document.getElementById('price').innerText = `Current Price of ${data.symbol}: $${data.price}`;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('price').innerText = 'Error fetching data';
+                });
+        }
 
-        {% if data %}
-        <h2>Historical Data for {{ symbol }}</h2>
-        <table>
-            <tr>
-                <th>Date</th>
-                <th>Open</th>
-                <th>High</th>
-                <th>Low</th>
-                <th>Close</th>
-                <th>Volume</th>
-            </tr>
-            {% for row in data %}
-            <tr>
-                <td>{{ row['Date'] }}</td>
-                <td>{{ row['Open'] }}</td>
-                <td>{{ row['High'] }}</td>
-                <td>{{ row['Low'] }}</td>
-                <td>{{ row['Close'] }}</td>
-                <td>{{ row['Volume'] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        {% endif %}
-    </div>
+        // Refresh the stock price every 10 seconds
+        setInterval(getStockPrice, 10000);
+    </script>
 </body>
 </html>
